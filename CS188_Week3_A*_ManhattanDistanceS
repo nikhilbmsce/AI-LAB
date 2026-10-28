@@ -1,0 +1,99 @@
+import heapq
+
+def manhattan_distance(state, goal):
+    distance = 0
+
+    for tile in range(1, 9):
+        current_pos = state.index(tile)
+        goal_pos = goal.index(tile)
+
+        r1, c1 = divmod(current_pos, 3)
+        r2, c2 = divmod(goal_pos, 3)
+
+        distance += abs(r1 - r2) + abs(c1 - c2)
+
+    return distance
+
+def get_neighbors(state):
+    neighbors = []
+    zero = state.index(0)
+    row, col = divmod(zero, 3)
+
+    moves = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+    for dr, dc in moves:
+        nr, nc = row + dr, col + dc
+
+        if 0 <= nr < 3 and 0 <= nc < 3:
+            new_zero = nr * 3 + nc
+            new_state = list(state)
+            new_state[zero], new_state[new_zero] = new_state[new_zero], new_state[zero]
+            neighbors.append(tuple(new_state))
+
+    return neighbors
+
+def print_state(state):
+    for i in range(0, 9, 3):
+        print(state[i:i+3])
+    print()
+
+def astar(start, goal):
+    open_list = []
+    h = manhattan_distance(start, goal)
+
+    heapq.heappush(open_list, (h, 0, start, [start]))
+    visited = set()
+
+    while open_list:
+        f, g, current, path = heapq.heappop(open_list)
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+
+        if current == goal:
+            print("Solution found!")
+            print("Number of moves:", g)
+            print("Path:")
+            for state in path:
+                print_state(state)
+            return
+
+        for neighbor in get_neighbors(current):
+            if neighbor not in visited:
+                new_g = g + 1
+                new_h = manhattan_distance(neighbor, goal)
+                new_f = new_g + new_h
+
+                heapq.heappush(
+                    open_list,
+                    (new_f, new_g, neighbor, path + [neighbor])
+                )
+
+    print("No solution found.")
+
+start = tuple(map(int, input("Enter initial state (0 for blank): ").split()))
+goal = tuple(map(int, input("Enter goal state (0 for blank): ").split()))
+
+astar(start, goal)
+
+
+OUTPUT:
+
+Enter initial state (0 for blank): 1 2 3 4 0 6 7 5 8
+Enter goal state (0 for blank): 1 2 3 4 5 6 7 8 0
+Solution found!
+Number of moves: 2
+Path:
+(1, 2, 3)
+(4, 0, 6)
+(7, 5, 8)
+
+(1, 2, 3)
+(4, 5, 6)
+(7, 0, 8)
+
+(1, 2, 3)
+(4, 5, 6)
+(7, 8, 0)
