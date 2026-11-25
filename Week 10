@@ -1,0 +1,127 @@
+
+# Week 10: Alpha-Beta Pruning Algorithm
+
+# Game tree
+# A = MAX
+# B, C = MIN
+# D, E, F, G = MAX
+
+tree = [
+    [
+        [10, 9],
+        [14, 18]
+    ],
+    [
+        [5, 4],
+        [50, 3]
+    ]
+]
+
+visited = []
+pruned = []
+
+
+def alpha_beta(node, alpha, beta, maximizing):
+
+    # If node is a leaf
+    if isinstance(node, int):
+        visited.append(node)
+        return node
+
+    if maximizing:
+
+        value = float('-inf')
+
+        for i, child in enumerate(node):
+
+            value = max(
+                value,
+                alpha_beta(child, alpha, beta, False)
+            )
+
+            alpha = max(alpha, value)
+
+            print("MAX: Alpha =", alpha,
+                  "Beta =", beta)
+
+            # Pruning condition
+            if alpha >= beta:
+
+                for remaining in node[i+1:]:
+                    collect_pruned(remaining)
+
+                print("Pruned subtree:", node[i+1:])
+                break
+
+        return value
+
+    else:
+
+        value = float('inf')
+
+        for i, child in enumerate(node):
+
+            value = min(
+                value,
+                alpha_beta(child, alpha, beta, True)
+            )
+
+            beta = min(beta, value)
+
+            print("MIN: Alpha =", alpha,
+                  "Beta =", beta)
+
+            # Pruning condition
+            if alpha >= beta:
+
+                for remaining in node[i+1:]:
+                    collect_pruned(remaining)
+
+                print("Pruned subtree:", node[i+1:])
+                break
+
+        return value
+
+
+def collect_pruned(node):
+
+    if isinstance(node, int):
+        pruned.append(node)
+
+    else:
+        for child in node:
+            collect_pruned(child)
+
+
+# Main program
+if __name__ == "__main__":
+
+    print("ALPHA-BETA PRUNING")
+    print("------------------")
+
+    result = alpha_beta(
+        tree,
+        float('-inf'),
+        float('inf'),
+        True
+    )
+
+    print("\nFINAL RESULT")
+    print("Maximum value:", result)
+
+    print("Visited leaf nodes:", visited)
+    print("Pruned leaf nodes:", pruned)
+
+
+
+
+
+OUTPUT:-
+
+ALPHA-BETA PRUNING
+
+FINAL RESULT
+
+Maximum value: 10
+Visited leaf nodes: [10, 9, 14, 5, 4]
+Pruned leaf nodes: [18, 50, 3]
