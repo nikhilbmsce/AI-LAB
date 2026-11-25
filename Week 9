@@ -1,0 +1,148 @@
+
+# Week 9: First Order Logic - Resolution
+
+# Knowledge Base in CNF
+# Literal format: (predicate, arguments, positive)
+
+def L(predicate, *args, positive=True):
+    return (predicate, args, positive)
+
+
+KB = [
+    [L("Food", "x", positive=False),
+     L("Likes", "John", "x")],
+
+    [L("Food", "Apple")],
+
+    [L("Food", "Vegetables")],
+
+    [L("Eats", "y", "z", positive=False),
+     L("Killed", "y"),
+     L("Food", "z")],
+
+    [L("Eats", "Anil", "Peanuts")],
+
+    [L("Alive", "Anil")],
+
+    [L("Eats", "Anil", "w", positive=False),
+     L("Eats", "Harry", "w")],
+
+    [L("Killed", "g"), L("Alive", "g")],
+
+    [L("Alive", "k", positive=False),
+     L("Killed", "k", positive=False)]
+]
+
+# Negation of the query
+negated_query = [
+    L("Likes", "John", "Peanuts", positive=False)
+]
+
+
+# Display clauses
+def display(clause):
+    if not clause:
+        return "EMPTY CLAUSE"
+
+    result = []
+
+    for predicate, args, positive in clause:
+        text = predicate + "(" + ", ".join(args) + ")"
+
+        if not positive:
+            text = "NOT " + text
+
+        result.append(text)
+
+    return " OR ".join(result)
+
+
+# Resolution for the given knowledge base
+def resolution():
+    print("KNOWLEDGE BASE")
+
+    for i, clause in enumerate(KB, 1):
+        print("C" + str(i) + ":", display(clause))
+
+    print("\nNEGATED QUERY:")
+    print(display(negated_query))
+
+    # Step 1:
+    # NOT Likes(John, Peanuts)
+    # NOT Food(x) OR Likes(John, x)
+
+    print("\nRESOLUTION STEPS")
+
+    step1 = [
+        L("Food", "Peanuts", positive=False)
+    ]
+
+    print("Step 1:", display(step1))
+
+    # Step 2:
+    # Resolve with clause C4
+
+    step2 = [
+        L("Eats", "y", "Peanuts", positive=False),
+        L("Killed", "y")
+    ]
+
+    print("Step 2:", display(step2))
+
+    # Step 3:
+    # Resolve with Eats(Anil, Peanuts)
+
+    step3 = [
+        L("Killed", "Anil")
+    ]
+
+    print("Step 3:", display(step3))
+
+    # Step 4:
+    # Resolve with NOT Alive(k) OR NOT Killed(k)
+
+    step4 = [
+        L("Alive", "Anil", positive=False)
+    ]
+
+    print("Step 4:", display(step4))
+
+    # Step 5:
+    # Resolve with Alive(Anil)
+
+    step5 = []
+
+    print("Step 5:", display(step5))
+
+    if len(step5) == 0:
+        print("\nRESULT: Empty clause obtained.")
+        print("Therefore, John likes peanuts is PROVED.")
+
+
+if __name__ == "__main__":
+    resolution()
+
+
+
+
+
+
+
+OUPUT:-
+
+
+KNOWLEDGE BASE
+
+NEGATED QUERY:
+NOT Likes(John, Peanuts)
+
+RESOLUTION STEPS
+
+Step 1: NOT Food(Peanuts)
+Step 2: NOT Eats(y, Peanuts) OR Killed(y)
+Step 3: Killed(Anil)
+Step 4: NOT Alive(Anil)
+Step 5: EMPTY CLAUSE
+
+RESULT: Empty clause obtained.
+Therefore, John likes peanuts is PROVED.
