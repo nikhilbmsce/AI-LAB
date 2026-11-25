@@ -1,0 +1,192 @@
+
+# First Order Logic using Unification and Forward Chaining
+
+# Unification Algorithm
+def unify(x, y, substitution=None):
+    if substitution is None:
+        substitution = {}
+
+    if x == y:
+        return substitution
+
+    if isinstance(x, str) and x.islower() and x.startswith('?'):
+        return unify_variable(x, y, substitution)
+
+    if isinstance(y, str) and y.islower() and y.startswith('?'):
+        return unify_variable(y, x, substitution)
+
+    if isinstance(x, tuple) and isinstance(y, tuple):
+        if len(x) != len(y):
+            return None
+
+        for a, b in zip(x, y):
+            substitution = unify(a, b, substitution)
+            if substitution is None:
+                return None
+
+        return substitution
+
+    return None
+
+
+def unify_variable(var, value, substitution):
+    if var in substitution:
+        return unify(substitution[var], value, substitution)
+
+    if value in substitution:
+        return unify(var, substitution[value], substitution)
+
+    substitution[var] = value
+    return substitution
+
+
+# Apply substitution
+def substitute(expression, substitution):
+    if isinstance(expression, str):
+        while expression in substitution:
+            expression = substitution[expression]
+        return expression
+
+    if isinstance(expression, tuple):
+        return tuple(substitute(x, substitution) for x in expression)
+
+    return expression
+
+
+# Knowledge Base
+facts = [
+    ("American", "Robert"),
+    ("Missile", "T1"),
+    ("Owns", "A", "T1"),
+    ("Enemy", "A", "America")
+]
+
+# Forward Chaining Rules
+rules = [
+    {
+        "premises": [("Missile", "?x")],
+        "conclusion": ("Weapon", "?x")
+    },
+    {
+        "premises": [("Enemy", "?x", "America")],
+        "conclusion": ("Hostile", "?x")
+    },
+    {
+        "premises": [
+            ("Missile", "?x"),
+            ("Owns", "A", "?x")
+        ],
+        "conclusion": ("Sells", "Robert", "?x", "A")
+    },
+    {
+        "premises": [
+            ("American", "?x"),
+            ("Weapon", "?y"),
+            ("Sells", "?x", "?y", "?z"),
+            ("Hostile", "?z")
+        ],
+        "conclusion": ("Criminal", "?x")
+    }
+]
+
+
+# Forward Chaining Algorithm
+def forward_chaining(facts, rules):
+    knowledge_base = list(facts)
+
+    while True:
+        new_facts = []
+
+        for rule in rules:
+            substitutions = [{}]
+
+            for premise in rule["premises"]:
+                updated_substitutions = []
+
+                for substitution in substitutions:
+                    current = substitute(premise, substitution)
+
+                    for fact in knowledge_base:
+                        result = unify(current, fact, substitution.copy())
+
+                        if result is not None:
+                            updated_substitutions.append(result)
+
+                substitutions = updated_substitutions
+
+                if not substitutions:
+                    break
+
+            for substitution in substitutions:
+                conclusion = substitute(
+                    rule["conclusion"], substitution
+                )
+
+                if conclusion not in knowledge_base:
+                    new_facts.append(conclusion)
+
+        if not new_facts:
+            break
+
+        for fact in new_facts:
+            if fact not in knowledge_base:
+                knowledge_base.append(fact)
+                print("New Fact:", fact)
+
+    return knowledge_base
+
+
+# Main Program
+print("FIRST ORDER LOGIC")
+print("-----------------------------")
+
+print("\nInitial Knowledge Base:")
+for fact in facts:
+    print(fact)
+
+print("\nApplying Forward Chaining...\n")
+
+result = forward_chaining(facts, rules)
+
+query = ("Criminal", "Robert")
+
+print("\nFinal Knowledge Base:")
+for fact in result:
+    print(fact)
+
+print("\nQuery:", query)
+
+if query in result:
+    print("Result: SUCCESSFUL")
+    print("Robert is a Criminal.")
+else:
+    print("Result: FAILURE")
+    print("Robert is NOT proven to be a Criminal.")
+
+
+
+
+
+OUTPUT:-
+
+
+FIRST ORDER LOGIC
+-----------------------------
+
+Initial Knowledge Base:
+('American', 'Robert')
+('Missile', 'T1')
+('Owns', 'A', 'T1')
+('Enemy', 'A', 'America')
+
+Applying Forward Chaining...
+
+New Fact: ('Weapon', 'T1')
+New Fact: ('Hostile', 'A')
+New Fact: ('Sells', 'Robert', 'T1', 'A')
+New Fact: ('Criminal', 'Robert')
+
+Query: ('Criminal', 'Robert')
+
+Result: SUCCESSFUL
+Robert is a Criminal.
